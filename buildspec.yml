@@ -1,0 +1,27 @@
+version: 0.2
+
+phases:
+  install:
+    commands:
+      # Upgrade AWS CLI to the latest version
+      - pip install --upgrade awscli
+
+      # Install Ruby dependencies from the Gemfile.
+      - bundle install
+
+  pre_build:
+    commands:
+      # Set the SECRET_KEY_BASE environment variable for running tests
+      - export SECRET_KEY_BASE=$(rake secret)
+
+      # Run the tests using RSpec.
+      - rspec
+
+  post_build:
+    commands:
+      - aws cloudformation package --template template.yml --s3-bucket $S3_BUCKET --output-template-file template-export.yml
+
+artifacts:
+  type: zip
+  files:
+    - template-export.yml
